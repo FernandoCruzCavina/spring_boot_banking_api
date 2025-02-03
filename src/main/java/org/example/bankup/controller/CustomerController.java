@@ -1,0 +1,45 @@
+package org.example.bankup.controller;
+
+import org.example.bankup.dto.customer.CreateCustomerDto;
+import org.example.bankup.dto.customer.LoginCustomerDto;
+import org.example.bankup.dto.customer.ViewCustomerDto;
+import org.example.bankup.service.CustomerService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/customers")
+public class CustomerController {
+
+    private final CustomerService customerService;
+
+    @Autowired
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ViewCustomerDto> getCustomerDtoById(@PathVariable int id) {
+        ViewCustomerDto viewCustomerDto = customerService.getCustomerById(id);
+        if (viewCustomerDto == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(viewCustomerDto);
+    }
+
+    @GetMapping("/login")
+    public ResponseEntity<String> loginCustomer(@RequestBody LoginCustomerDto loginCustomerDto) {
+        String token = customerService.loginCustomer(loginCustomerDto);
+        if (token == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(token);
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<String> createCustomerDto(@RequestBody CreateCustomerDto createCustomerDto) {
+        customerService.createCustomer(createCustomerDto);
+        return ResponseEntity.ok("Customer created");
+    }
+}
