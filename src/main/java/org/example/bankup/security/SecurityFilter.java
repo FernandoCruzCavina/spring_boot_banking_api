@@ -28,10 +28,10 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = recoverToken(request);
 
+        System.out.println("aqui filter chain");
         if (token != null) {
-            String login = jwtUtils.verifyToken(token);
-            Optional<Customer> customer = customerRepository.findFirstByMail(login);
-
+            String email = jwtUtils.verifyToken(token);
+            Optional<Customer> customer = customerRepository.findFirstByMail(email);
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(customer, null, customer.get().getAuthorities() );
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }

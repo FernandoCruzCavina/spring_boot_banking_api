@@ -1,5 +1,6 @@
 package org.example.bankup.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.bankup.dto.transaction.CreateTransactionDto;
 import org.example.bankup.dto.transaction.ViewTransactionDto;
 import org.example.bankup.entity.Transaction;
@@ -11,6 +12,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/transactions")
+@Tag( name = "Transaction")
 public class TransactionController {
 
     private TransactionService transactionService;
@@ -31,9 +33,13 @@ public class TransactionController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createTransaction(@RequestBody CreateTransactionDto createTransactionDto) {
-        Transaction transaction = new Transaction();
+    public ResponseEntity<ViewTransactionDto> createTransaction(@RequestBody CreateTransactionDto createTransactionDto) {
+        ViewTransactionDto transaction = transactionService.createPaymentNow(createTransactionDto);
 
-        return ResponseEntity.ok("created transaction");
+        if (transaction == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(transaction);
     }
 }

@@ -6,6 +6,7 @@ import org.example.bankup.dto.account.CreateAccountDto;
 import org.example.bankup.dto.account.ViewAccountDto;
 import org.example.bankup.entity.Account;
 import org.example.bankup.entity.Customer;
+import org.example.bankup.mapper.AccountMapper;
 import org.example.bankup.repository.AccountRepository;
 import org.example.bankup.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,10 +30,11 @@ public class AccountService {
 
     public void createAccount(CreateAccountDto accountDto) {
 
-        Optional<Customer> customer = customerRepository.findFirstByCustomerId(accountDto.getCustomerId());
+        Optional<Customer> customer = customerRepository.findFirstByCustomerId(accountDto.customerId());
+
 
         Account account = new Account(
-                accountDto.getBalance(),
+                accountDto.balance(),
                 AccountType.STANDARD_USER,
                 AccountStatus.ACTIVE,
                 Timestamp.from(Instant.now()),
@@ -45,16 +47,16 @@ public class AccountService {
     public ViewAccountDto getAccountByCustomerId(long customerId) {
         Optional<Account> account = accountRepository.findFirstByCustomer_CustomerId(customerId);
 
-        return account.map( c -> new ViewAccountDto(
-                c.getBalance(),
-                c.getAccountType(),
-                c.getStatus(),
-                c.getCreatedAt()
-                )
-        ).orElse(null);
+        return account.map(AccountMapper.INSTANCE::accountToViewAccountDto).orElse(null);
     }
 
-    public void deleteAccountById(long accountId) {
-        accountRepository.deleteById(accountId);
+    public boolean deleteAccountByCustomerId(long customer_id) {
+        Optional<Customer> customer = customerRepository.findFirstByCustomerId(customer_id);
+        if (customer.isPresent()) {
+            Account account = accountRepository.findFirstByCustomer_CustomerId(customer_id).get();
+            return true;
+        } else {
+            return false;
+        }
     }
 }

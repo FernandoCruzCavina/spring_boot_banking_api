@@ -6,6 +6,7 @@ import org.example.bankup.dto.transaction.CreateTransactionDto;
 import org.example.bankup.dto.transaction.ViewTransactionDto;
 import org.example.bankup.entity.Account;
 import org.example.bankup.entity.Transaction;
+import org.example.bankup.mapper.TransactionMapper;
 import org.example.bankup.repository.AccountRepository;
 import org.example.bankup.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,26 +31,21 @@ public class TransactionService {
     public ViewTransactionDto getTransactionById(long id){
         Optional<Transaction> transaction = transactionRepository.findById(id);
 
-        return transaction.map(t ->
-                new ViewTransactionDto(
-                        t.getFromAccount(),
-                        t.getToAccount(),
-                        t.getAmount(),
-                        t.getCreatedTransactionDate(),
-                        t.getCompletedTransactionDate(),
-                        t.getTransactionType(),
-                        t.getStatus()
-                )).orElse(null);
+        return transaction.map(TransactionMapper.INSTANCE::transactionToViewTransactionDto).orElse(null);
     }
 
-    public void createPaymentNow(CreateTransactionDto transactionDto) {
-        Optional<Account> fromAccount = accountRepository.findFirstByAccountId(transactionDto.getFromAccount());
-        Optional<Account> toAccount = accountRepository.findFirstByAccountId(transactionDto.getToAccount());
+    public ViewTransactionDto createPaymentNow(CreateTransactionDto transactionDto) {
+        Optional<Account> fromAccount = accountRepository.findFirstByAccountId(transactionDto.fromAccount().getAccountId());
+        Optional<Account> toAccount = accountRepository.findFirstByAccountId(transactionDto.toAccount().getAccountId());
+
+        if(fromAccount.isEmpty() && toAccount.isEmpty()){
+            return null;
+        }
 
         Transaction transaction = new Transaction(
                 fromAccount.get(),
                 toAccount.get(),
-                transactionDto.getAmount(),
+                transactionDto.amount(),
                 Timestamp.from(Instant.now()),
                 Timestamp.from(Instant.now()),
                 TransactionType.WITHDRAW,
@@ -57,8 +53,24 @@ public class TransactionService {
                 );
 
         transactionRepository.save(transaction);
+
+        payment(transaction);
+
+        return TransactionMapper.INSTANCE.transactionToViewTransactionDto(transaction);
     }
 
     public void createSchedulePayment(CreateTransactionDto transactionDto) {}
+
+    public void payment(Transaction transaction)  {
+
+        Account fromAccount = transaction.getFromAccount();
+        Account toAccount = transaction.getToAccount();
+
+        fromAccount.setBalance(fromAccount.getBalance() - transaction.getAmount());
+        toAccount.setBalance(toAccount.getBalance() + transaction.getAmount());
+
+        accountRepository.save(fromAccount);
+        accountRepository.save(toAccount);
+    }
 
 }

@@ -23,7 +23,6 @@ public class JwtUtils {
     public String generateToken(Customer customer) {
         try {
 
-            System.out.println(secret);
             Algorithm algorithm = Algorithm.HMAC256(secret);
 
             return JWT.create()

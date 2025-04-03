@@ -68,7 +68,7 @@ public class RsaService {
     }
 
     //InvalidKeyException, NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException
-    public  String encryptData(String data) {
+    public String encryptData(String data) {
         try{
             Cipher encryptCipher = Cipher.getInstance("RSA");
             PublicKey publicKey = getPublicKey();

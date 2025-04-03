@@ -68,4 +68,8 @@ public class Customer implements UserDetails {
     public String getUsername() {
         return "";
     }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }
