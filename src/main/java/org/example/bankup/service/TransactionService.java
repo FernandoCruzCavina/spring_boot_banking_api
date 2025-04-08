@@ -7,6 +7,7 @@ import org.example.bankup.dto.transaction.CreateTransactionDto;
 import org.example.bankup.dto.transaction.ViewTransactionDto;
 import org.example.bankup.entity.Account;
 import org.example.bankup.entity.Transaction;
+import org.example.bankup.exception.AccountNotFoundException;
 import org.example.bankup.mapper.TransactionMapper;
 import org.example.bankup.repository.AccountRepository;
 import org.example.bankup.repository.TransactionRepository;
@@ -38,13 +39,13 @@ public class TransactionService {
 
     }
     public ViewTransactionDto createPaymentNow(CreateTransactionDto transactionDto) {
-        Optional<Account> fromAccountOpt = accountRepository.findFirstByAccountId(transactionDto.fromAccount().getAccountId());
-        Optional<Account> toAccountOpt = accountRepository.findFirstByAccountId(transactionDto.toAccount().getAccountId());
+        Account fromAccount = accountRepository.findFirstByAccountId(
+                transactionDto.fromAccount().getAccountId()
+        ).orElseThrow(AccountNotFoundException::new);
 
-        if(fromAccountOpt.isEmpty() || toAccountOpt.isEmpty()) throw new RuntimeException();
-
-        Account fromAccount = fromAccountOpt.get();
-        Account toAccount = toAccountOpt.get();
+        Account toAccount = accountRepository.findFirstByAccountId(
+                transactionDto.toAccount().getAccountId()
+        ).orElseThrow(AccountNotFoundException::new);
 
         boolean isValidPayment = verifyPayment(fromAccount, toAccount, transactionDto.amount());
 

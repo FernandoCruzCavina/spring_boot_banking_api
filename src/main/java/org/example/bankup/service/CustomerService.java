@@ -6,6 +6,7 @@ import org.example.bankup.dto.customer.ViewCustomerDto;
 import org.example.bankup.dto.zip_code.ResponseZipCodeDto;
 import org.example.bankup.entity.Customer;
 import org.example.bankup.entity.ZipCode;
+import org.example.bankup.exception.CustomerNotFoundException;
 import org.example.bankup.mapper.CustomerMapper;
 import org.example.bankup.mapper.ZipCodeMapper;
 import org.example.bankup.repository.CustomerRepository;
@@ -73,11 +74,9 @@ public class CustomerService {
     }
 
     public String updateCustomer(Customer customerUpdate){
-        Optional<Customer> customer = customerRepository.findFirstByCustomerId(customerUpdate.getCustomerId());
-
-        if(customer.isEmpty()){
-            return "this customer does not exist";
-        }
+        Customer customer = customerRepository.findFirstByCustomerId(
+                customerUpdate.getCustomerId()
+        ).orElseThrow(CustomerNotFoundException::new);
 
         customerRepository.save(customerUpdate);
 
