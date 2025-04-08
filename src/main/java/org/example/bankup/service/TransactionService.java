@@ -1,5 +1,6 @@
 package org.example.bankup.service;
 
+import org.example.bankup.constants.AccountStatus;
 import org.example.bankup.constants.TransactionStatus;
 import org.example.bankup.constants.TransactionType;
 import org.example.bankup.dto.transaction.CreateTransactionDto;
@@ -33,35 +34,42 @@ public class TransactionService {
 
         return transaction.map(TransactionMapper.INSTANCE::transactionToViewTransactionDto).orElse(null);
     }
+    public void createSchedulePayment(CreateTransactionDto transactionDto) {
 
+    }
     public ViewTransactionDto createPaymentNow(CreateTransactionDto transactionDto) {
-        Optional<Account> fromAccount = accountRepository.findFirstByAccountId(transactionDto.fromAccount().getAccountId());
-        Optional<Account> toAccount = accountRepository.findFirstByAccountId(transactionDto.toAccount().getAccountId());
+        Optional<Account> fromAccountOpt = accountRepository.findFirstByAccountId(transactionDto.fromAccount().getAccountId());
+        Optional<Account> toAccountOpt = accountRepository.findFirstByAccountId(transactionDto.toAccount().getAccountId());
 
-        if(fromAccount.isEmpty() && toAccount.isEmpty()){
+        if(fromAccountOpt.isEmpty() || toAccountOpt.isEmpty()) throw new RuntimeException();
+
+        Account fromAccount = fromAccountOpt.get();
+        Account toAccount = toAccountOpt.get();
+
+        boolean isValidPayment = verifyPayment(fromAccount, toAccount, transactionDto.amount());
+
+        if (isValidPayment) {
+
+            Transaction transaction = new Transaction(
+                    fromAccount,
+                    toAccount,
+                    transactionDto.amount(),
+                    Timestamp.from(Instant.now()),
+                    Timestamp.from(Instant.now()),
+                    TransactionType.WITHDRAW,
+                    TransactionStatus.COMPLETED
+            );
+
+            payment(transaction);
+            transactionRepository.save(transaction);
+
+            return TransactionMapper.INSTANCE.transactionToViewTransactionDto(transaction);
+        } else{
             return null;
         }
-
-        Transaction transaction = new Transaction(
-                fromAccount.get(),
-                toAccount.get(),
-                transactionDto.amount(),
-                Timestamp.from(Instant.now()),
-                Timestamp.from(Instant.now()),
-                TransactionType.WITHDRAW,
-                TransactionStatus.COMPLETED
-                );
-
-        transactionRepository.save(transaction);
-
-        payment(transaction);
-
-        return TransactionMapper.INSTANCE.transactionToViewTransactionDto(transaction);
     }
 
-    public void createSchedulePayment(CreateTransactionDto transactionDto) {}
-
-    public void payment(Transaction transaction)  {
+    private void payment(Transaction transaction)  {
 
         Account fromAccount = transaction.getFromAccount();
         Account toAccount = transaction.getToAccount();
@@ -73,4 +81,29 @@ public class TransactionService {
         accountRepository.save(toAccount);
     }
 
+    private boolean verifyPayment(Account fromAccount, Account toAccount, double transactionAmount) {
+
+        boolean isEnoughBalance = verifyBalance(fromAccount, transactionAmount);
+        boolean isStatusActive = verifyStatus(fromAccount, toAccount);
+
+        return isEnoughBalance && isStatusActive;
+    }
+
+    private boolean verifyBalance(Account fromAccount, double transactionAmount) {
+
+        double balanceFromAccount = fromAccount.getBalance();
+
+        return transactionAmount < balanceFromAccount;
+    }
+
+    private boolean verifyStatus(Account fromAccount, Account toAccount) {
+        AccountStatus statusFromAccount = fromAccount.getStatus();
+        AccountStatus statusToAccount = toAccount.getStatus();
+
+        boolean isStatusValidFromAccount = statusFromAccount.equals(AccountStatus.ACTIVE);
+        boolean isStatusValidToAccount = statusToAccount.equals(AccountStatus.ACTIVE);
+
+        return isStatusValidFromAccount && isStatusValidToAccount;
+
+    }
 }

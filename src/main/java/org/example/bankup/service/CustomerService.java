@@ -3,9 +3,13 @@ package org.example.bankup.service;
 import org.example.bankup.dto.customer.CreateCustomerDto;
 import org.example.bankup.dto.customer.LoginCustomerDto;
 import org.example.bankup.dto.customer.ViewCustomerDto;
+import org.example.bankup.dto.zip_code.ResponseZipCodeDto;
 import org.example.bankup.entity.Customer;
+import org.example.bankup.entity.ZipCode;
 import org.example.bankup.mapper.CustomerMapper;
+import org.example.bankup.mapper.ZipCodeMapper;
 import org.example.bankup.repository.CustomerRepository;
+import org.example.bankup.repository.ZipCodeRepository;
 import org.example.bankup.security.JwtUtils;
 import org.example.bankup.security.RsaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +27,17 @@ public class CustomerService {
 
     private final JwtUtils jwtUtils;
 
+    private final ZipCodeService zipCodeService;
+
+    private final ZipCodeRepository zipCodeRepository;
+
     @Autowired
-    public CustomerService(CustomerRepository customerRepository, RsaService rsaService, JwtUtils jwtUtils) {
+    public CustomerService(CustomerRepository customerRepository, RsaService rsaService, JwtUtils jwtUtils, ZipCodeService zipCodeService, ZipCodeRepository zipCodeRepository) {
         this.customerRepository = customerRepository;
         this.rsaService = rsaService;
         this.jwtUtils = jwtUtils;
+        this.zipCodeService = zipCodeService;
+        this.zipCodeRepository = zipCodeRepository;
     }
 
     public Customer createCustomer(CreateCustomerDto createCustomerDto) {
@@ -84,5 +94,22 @@ public class CustomerService {
         customerRepository.deleteById(id);
 
         return CustomerMapper.INSTANCE.customerToViewCustomerDto(customer.get());
+    }
+
+    public ZipCode zipCode(String country, String zipCode){
+        ResponseZipCodeDto resZipCode = zipCodeService.searchZipCodeByCodes(country, zipCode);
+
+        ZipCode zip = new ZipCode(
+                resZipCode.postCode(),
+                resZipCode.country(),
+                resZipCode.countryAbbreviation(),
+                resZipCode.places().get(0).state,
+                resZipCode.places().get(0).stateAbbreviation,
+                resZipCode.places().get(0).city,
+                resZipCode.places().get(0).latitude,
+                resZipCode.places().get(0).longitude
+        );
+
+        return zip;
     }
 }

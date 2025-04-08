@@ -11,6 +11,7 @@ import org.example.bankup.dto.customer.CreateCustomerDto;
 import org.example.bankup.dto.customer.LoginCustomerDto;
 import org.example.bankup.dto.customer.ViewCustomerDto;
 import org.example.bankup.entity.Customer;
+import org.example.bankup.entity.ZipCode;
 import org.example.bankup.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -90,7 +91,7 @@ public class CustomerController {
         return customerService.getAllCustomers();
     }
 
-    @PutMapping("update")
+    @PutMapping("/update")
     public String updateCustomer(@RequestBody Customer customer) {
         return customerService.updateCustomer(customer);
     }
@@ -102,5 +103,10 @@ public class CustomerController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(viewCustomerDto);
+    }
+
+    @GetMapping("/{country}/{postalCode}")
+    public ResponseEntity<ZipCode> getZipCodeByPostalCode(@PathVariable String country, @PathVariable String postalCode) {
+        return ResponseEntity.ok(customerService.zipCode(country, postalCode));
     }
 }

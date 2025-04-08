@@ -1,20 +1,23 @@
 package org.example.bankup.dto.zip_code;
 
-import lombok.Data;
-import org.example.bankup.entity.ZipCode;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import java.util.Map;
 
-
-@Data
-public class ResponseZipCodeDto {
-
-    private static class Query{
-        public List<String> codes;
-        public String country;
-    };
-
-    private Query query;
-    private Map<String, List<ZipCode>>  results;
+public record ResponseZipCodeDto(
+    @JsonProperty("post code")
+    String postCode,
+    String country,
+    @JsonProperty("country abbreviation")
+    String countryAbbreviation,
+    List<Place> places
+) {
+    public static class Place{
+        @JsonProperty("place name")
+        public String city;
+        public String state;
+        @JsonProperty("state abbreviation")
+        public String stateAbbreviation;
+        public String latitude;
+        public String longitude;
+    }
 }
