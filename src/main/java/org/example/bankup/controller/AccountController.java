@@ -61,12 +61,8 @@ public class AccountController {
 
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteAccount(@PathVariable long customerId){
-        boolean isDeleted = accountService.deleteAccountByCustomerId(customerId);
+        String responseDeleted = accountService.deleteAccountByCustomerId(customerId);
 
-        if (isDeleted) {
-            return ResponseEntity.ok("Account deleted");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(responseDeleted);
     }
 }

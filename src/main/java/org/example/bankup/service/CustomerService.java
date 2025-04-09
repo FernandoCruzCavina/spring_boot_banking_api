@@ -6,9 +6,9 @@ import org.example.bankup.dto.customer.ViewCustomerDto;
 import org.example.bankup.dto.zip_code.ResponseZipCodeDto;
 import org.example.bankup.entity.Customer;
 import org.example.bankup.entity.ZipCode;
-import org.example.bankup.exception.CustomerNotFoundException;
+import org.example.bankup.exception.EntityNotFoundException;
+import org.example.bankup.exception.UnauthorizedException;
 import org.example.bankup.mapper.CustomerMapper;
-import org.example.bankup.mapper.ZipCodeMapper;
 import org.example.bankup.repository.CustomerRepository;
 import org.example.bankup.repository.ZipCodeRepository;
 import org.example.bankup.security.JwtUtils;
@@ -53,18 +53,21 @@ public class CustomerService {
     }
 
     public ViewCustomerDto getCustomerById(long id) {
-        Optional<Customer> customerEntity = customerRepository.findFirstByCustomerId(id);
+        Customer customer = customerRepository.findFirstByCustomerId(id)
+                .orElseThrow(EntityNotFoundException::customerNotFound);
 
-        return customerEntity
-                .map(CustomerMapper.INSTANCE::customerToViewCustomerDto)
-                .orElse(null);
+        return CustomerMapper.INSTANCE.customerToViewCustomerDto(customer);
     }
 
     public String loginCustomer(LoginCustomerDto loginCustomerDto) {
-        Optional<Customer> customer = customerRepository.findFirstByMail(loginCustomerDto.mail().toLowerCase());
+        Customer customer = customerRepository.findFirstByMail(loginCustomerDto.mail().toLowerCase())
+                .orElseThrow(EntityNotFoundException::customerNotFound);
 
-        return customer.filter( value -> rsaService.decryptData(value.getPassword()).equals(loginCustomerDto.password()))
-                .map(jwtUtils::generateToken).orElse(null);
+        String encryptedPassword = rsaService.encryptData(loginCustomerDto.password());
+
+        if(!encryptedPassword.equals(loginCustomerDto.password())) throw new UnauthorizedException("Email or password incorrect");
+
+        return jwtUtils.generateToken(customer);
     }
 
     public List<ViewCustomerDto> getAllCustomers() {
@@ -76,7 +79,7 @@ public class CustomerService {
     public String updateCustomer(Customer customerUpdate){
         Customer customer = customerRepository.findFirstByCustomerId(
                 customerUpdate.getCustomerId()
-        ).orElseThrow(CustomerNotFoundException::new);
+        ).orElseThrow(EntityNotFoundException::customerNotFound);
 
         customerRepository.save(customerUpdate);
 
@@ -84,15 +87,12 @@ public class CustomerService {
     }
 
     public ViewCustomerDto deleteCustomerById(long id) {
-        Optional<Customer> customer = customerRepository.findFirstByCustomerId(id);
-
-        if(customer.isEmpty()){
-            return null;
-        }
+        Customer customer = customerRepository.findFirstByCustomerId(id)
+                .orElseThrow(EntityNotFoundException::customerNotFound);
 
         customerRepository.deleteById(id);
 
-        return CustomerMapper.INSTANCE.customerToViewCustomerDto(customer.get());
+        return CustomerMapper.INSTANCE.customerToViewCustomerDto(customer);
     }
 
     public ZipCode zipCode(String country, String zipCode){

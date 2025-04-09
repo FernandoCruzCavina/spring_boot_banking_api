@@ -7,7 +7,8 @@ import org.example.bankup.dto.transaction.CreateTransactionDto;
 import org.example.bankup.dto.transaction.ViewTransactionDto;
 import org.example.bankup.entity.Account;
 import org.example.bankup.entity.Transaction;
-import org.example.bankup.exception.AccountNotFoundException;
+import org.example.bankup.exception.BusinessException;
+import org.example.bankup.exception.EntityNotFoundException;
 import org.example.bankup.mapper.TransactionMapper;
 import org.example.bankup.repository.AccountRepository;
 import org.example.bankup.repository.TransactionRepository;
@@ -35,39 +36,38 @@ public class TransactionService {
 
         return transaction.map(TransactionMapper.INSTANCE::transactionToViewTransactionDto).orElse(null);
     }
+
     public void createSchedulePayment(CreateTransactionDto transactionDto) {
 
     }
+
     public ViewTransactionDto createPaymentNow(CreateTransactionDto transactionDto) {
+
         Account fromAccount = accountRepository.findFirstByAccountId(
                 transactionDto.fromAccount().getAccountId()
-        ).orElseThrow(AccountNotFoundException::new);
+        ).orElseThrow(EntityNotFoundException::accountNotFound);
 
         Account toAccount = accountRepository.findFirstByAccountId(
                 transactionDto.toAccount().getAccountId()
-        ).orElseThrow(AccountNotFoundException::new);
+        ).orElseThrow(EntityNotFoundException::accountNotFound);
 
-        boolean isValidPayment = verifyPayment(fromAccount, toAccount, transactionDto.amount());
+        verifyBalance(fromAccount, transactionDto.amount());
+        verifyStatus(fromAccount, toAccount);
 
-        if (isValidPayment) {
+        Transaction transaction = new Transaction(
+                fromAccount,
+                toAccount,
+                transactionDto.amount(),
+                Timestamp.from(Instant.now()),
+                Timestamp.from(Instant.now()),
+                TransactionType.WITHDRAW,
+                TransactionStatus.COMPLETED
+        );
 
-            Transaction transaction = new Transaction(
-                    fromAccount,
-                    toAccount,
-                    transactionDto.amount(),
-                    Timestamp.from(Instant.now()),
-                    Timestamp.from(Instant.now()),
-                    TransactionType.WITHDRAW,
-                    TransactionStatus.COMPLETED
-            );
+        payment(transaction);
+        transactionRepository.save(transaction);
 
-            payment(transaction);
-            transactionRepository.save(transaction);
-
-            return TransactionMapper.INSTANCE.transactionToViewTransactionDto(transaction);
-        } else{
-            return null;
-        }
+        return TransactionMapper.INSTANCE.transactionToViewTransactionDto(transaction);
     }
 
     private void payment(Transaction transaction)  {
@@ -82,29 +82,25 @@ public class TransactionService {
         accountRepository.save(toAccount);
     }
 
-    private boolean verifyPayment(Account fromAccount, Account toAccount, double transactionAmount) {
+    private void verifyBalance(Account fromAccount, double amount) {
+        if (amount <= 0) {
+            throw BusinessException.invalidTransactionAmount();
+        }
 
-        boolean isEnoughBalance = verifyBalance(fromAccount, transactionAmount);
-        boolean isStatusActive = verifyStatus(fromAccount, toAccount);
-
-        return isEnoughBalance && isStatusActive;
+        if (fromAccount.getBalance() < amount) {
+            throw BusinessException.insufficientBalance();
+        }
     }
 
-    private boolean verifyBalance(Account fromAccount, double transactionAmount) {
 
-        double balanceFromAccount = fromAccount.getBalance();
+    private void verifyStatus(Account fromAccount, Account toAccount) {
+        if (!fromAccount.getStatus().equals(AccountStatus.ACTIVE)) {
+            throw BusinessException.statusInactive();
+        }
 
-        return transactionAmount < balanceFromAccount;
+        if (!toAccount.getStatus().equals(AccountStatus.ACTIVE)) {
+            throw BusinessException.statusInactive();
+        }
     }
 
-    private boolean verifyStatus(Account fromAccount, Account toAccount) {
-        AccountStatus statusFromAccount = fromAccount.getStatus();
-        AccountStatus statusToAccount = toAccount.getStatus();
-
-        boolean isStatusValidFromAccount = statusFromAccount.equals(AccountStatus.ACTIVE);
-        boolean isStatusValidToAccount = statusToAccount.equals(AccountStatus.ACTIVE);
-
-        return isStatusValidFromAccount && isStatusValidToAccount;
-
-    }
 }

@@ -6,6 +6,7 @@ import org.example.bankup.dto.account.CreateAccountDto;
 import org.example.bankup.dto.account.ViewAccountDto;
 import org.example.bankup.entity.Account;
 import org.example.bankup.entity.Customer;
+import org.example.bankup.exception.EntityNotFoundException;
 import org.example.bankup.mapper.AccountMapper;
 import org.example.bankup.repository.AccountRepository;
 import org.example.bankup.repository.CustomerRepository;
@@ -30,33 +31,36 @@ public class AccountService {
 
     public void createAccount(CreateAccountDto accountDto) {
 
-        Optional<Customer> customer = customerRepository.findFirstByCustomerId(accountDto.customerId());
-
+        Customer customer = customerRepository.findFirstByCustomerId(accountDto.customerId())
+                .orElseThrow(EntityNotFoundException::customerNotFound);
 
         Account account = new Account(
                 accountDto.balance(),
                 AccountType.STANDARD_USER,
                 AccountStatus.ACTIVE,
                 Timestamp.from(Instant.now()),
-                customer.get()
+                customer
         );
 
         accountRepository.save(account);
     }
 
     public ViewAccountDto getAccountByCustomerId(long customerId) {
-        Optional<Account> account = accountRepository.findFirstByCustomer_CustomerId(customerId);
+        Account account = accountRepository.findFirstByCustomer_CustomerId(customerId)
+                .orElseThrow(EntityNotFoundException::accountNotFound);
 
-        return account.map(AccountMapper.INSTANCE::accountToViewAccountDto).orElse(null);
+        return AccountMapper.INSTANCE.accountToViewAccountDto(account);
     }
 
-    public boolean deleteAccountByCustomerId(long customer_id) {
-        Optional<Customer> customer = customerRepository.findFirstByCustomerId(customer_id);
-        if (customer.isPresent()) {
-            Account account = accountRepository.findFirstByCustomer_CustomerId(customer_id).get();
-            return true;
-        } else {
-            return false;
-        }
+    public String deleteAccountByCustomerId(long customer_id) {
+        Customer customer = customerRepository.findFirstByCustomerId(customer_id)
+                .orElseThrow(EntityNotFoundException::customerNotFound);
+
+        Account account = accountRepository.findFirstByCustomer_CustomerId(customer.getCustomerId())
+                .orElseThrow(EntityNotFoundException::accountNotFound);
+
+        accountRepository.delete(account);
+
+        return "Account deleted";
     }
 }
