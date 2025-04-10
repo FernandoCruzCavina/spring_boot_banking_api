@@ -13,6 +13,8 @@ import org.example.bankup.mapper.TransactionMapper;
 import org.example.bankup.repository.AccountRepository;
 import org.example.bankup.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -31,6 +33,7 @@ public class TransactionService {
         this.accountRepository = accountRepository;
     }
 
+    @Cacheable(value = "transactions")
     public ViewTransactionDto getTransactionById(long id){
         Optional<Transaction> transaction = transactionRepository.findById(id);
 
@@ -41,6 +44,7 @@ public class TransactionService {
 
     }
 
+    @CachePut(value = "transacations", key = "{result.fromAccount(), result.toAccount()}")
     public ViewTransactionDto createPaymentNow(CreateTransactionDto transactionDto) {
 
         Account fromAccount = accountRepository.findFirstByAccountId(

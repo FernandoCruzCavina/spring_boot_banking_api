@@ -11,6 +11,9 @@ import org.example.bankup.mapper.AccountMapper;
 import org.example.bankup.repository.AccountRepository;
 import org.example.bankup.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
@@ -29,6 +32,7 @@ public class AccountService {
         this.customerRepository = customerRepository;
     }
 
+    @CachePut(value = "accounts")
     public void createAccount(CreateAccountDto accountDto) {
 
         Customer customer = customerRepository.findFirstByCustomerId(accountDto.customerId())
@@ -45,6 +49,7 @@ public class AccountService {
         accountRepository.save(account);
     }
 
+    @Cacheable(value = "accounts")
     public ViewAccountDto getAccountByCustomerId(long customerId) {
         Account account = accountRepository.findFirstByCustomer_CustomerId(customerId)
                 .orElseThrow(EntityNotFoundException::accountNotFound);
@@ -52,6 +57,7 @@ public class AccountService {
         return AccountMapper.INSTANCE.accountToViewAccountDto(account);
     }
 
+    @CacheEvict(value = "acccounts", allEntries = true)
     public String deleteAccountByCustomerId(long customer_id) {
         Customer customer = customerRepository.findFirstByCustomerId(customer_id)
                 .orElseThrow(EntityNotFoundException::customerNotFound);

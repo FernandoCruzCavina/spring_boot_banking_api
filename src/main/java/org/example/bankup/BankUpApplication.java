@@ -7,7 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 
-
 @EnableFeignClients( clients = ZipCodeService.class)
 @SpringBootApplication(exclude = SecurityAutoConfiguration.class)
 public class BankUpApplication {

@@ -14,6 +14,9 @@ import org.example.bankup.repository.ZipCodeRepository;
 import org.example.bankup.security.JwtUtils;
 import org.example.bankup.security.RsaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,6 +44,7 @@ public class CustomerService {
         this.zipCodeRepository = zipCodeRepository;
     }
 
+    @CachePut(value = "customers", key = "#result.customerId()")
     public Customer createCustomer(CreateCustomerDto createCustomerDto) {
         String encryptedPassword = rsaService.encryptData(createCustomerDto.password());
 
@@ -52,6 +56,7 @@ public class CustomerService {
         return customer;
     }
 
+    @Cacheable(value = "customers")
     public ViewCustomerDto getCustomerById(long id) {
         Customer customer = customerRepository.findFirstByCustomerId(id)
                 .orElseThrow(EntityNotFoundException::customerNotFound);
@@ -86,6 +91,7 @@ public class CustomerService {
         return "this customer has been updated";
     }
 
+    @CacheEvict(value = "customers", allEntries = true)
     public ViewCustomerDto deleteCustomerById(long id) {
         Customer customer = customerRepository.findFirstByCustomerId(id)
                 .orElseThrow(EntityNotFoundException::customerNotFound);
