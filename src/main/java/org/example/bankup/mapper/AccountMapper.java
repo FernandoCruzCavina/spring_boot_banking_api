@@ -7,9 +7,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface AccountMapper {
-    AccountMapper INSTANCE = Mappers.getMapper(AccountMapper.class);
 
     @Mapping(target = "", source = "")
     Account customerToAccount(Customer customer);

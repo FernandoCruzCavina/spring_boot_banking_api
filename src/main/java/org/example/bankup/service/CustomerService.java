@@ -18,9 +18,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 public class CustomerService {
@@ -35,20 +34,23 @@ public class CustomerService {
 
     private final ZipCodeRepository zipCodeRepository;
 
+    private final CustomerMapper customerMapper;
+
     @Autowired
-    public CustomerService(CustomerRepository customerRepository, RsaService rsaService, JwtUtils jwtUtils, ZipCodeService zipCodeService, ZipCodeRepository zipCodeRepository) {
+    public CustomerService(CustomerRepository customerRepository, RsaService rsaService, JwtUtils jwtUtils, ZipCodeService zipCodeService, ZipCodeRepository zipCodeRepository, CustomerMapper customerMapper) {
         this.customerRepository = customerRepository;
         this.rsaService = rsaService;
         this.jwtUtils = jwtUtils;
         this.zipCodeService = zipCodeService;
         this.zipCodeRepository = zipCodeRepository;
+        this.customerMapper = customerMapper;
     }
 
     @CachePut(value = "customers", key = "#result.customerId()")
     public Customer createCustomer(CreateCustomerDto createCustomerDto) {
         String encryptedPassword = rsaService.encryptData(createCustomerDto.password());
 
-        Customer customer = CustomerMapper.INSTANCE.createCustomerDtoToCustomer(createCustomerDto);
+        Customer customer = customerMapper.createCustomerDtoToCustomer(createCustomerDto);
         customer.setPassword(encryptedPassword);
 
         customerRepository.save(customer);
@@ -56,21 +58,22 @@ public class CustomerService {
         return customer;
     }
 
-    @Cacheable(value = "customers")
+    @Cacheable(value = "customers", key = "#id")
     public ViewCustomerDto getCustomerById(long id) {
         Customer customer = customerRepository.findFirstByCustomerId(id)
                 .orElseThrow(EntityNotFoundException::customerNotFound);
 
-        return CustomerMapper.INSTANCE.customerToViewCustomerDto(customer);
+        return customerMapper.customerToViewCustomerDto(customer);
     }
 
+    @Cacheable(value = "token", key = "#loginCustomerDto.mail()")
     public String loginCustomer(LoginCustomerDto loginCustomerDto) {
         Customer customer = customerRepository.findFirstByMail(loginCustomerDto.mail().toLowerCase())
                 .orElseThrow(EntityNotFoundException::customerNotFound);
 
-        String encryptedPassword = rsaService.encryptData(loginCustomerDto.password());
+        String decryptedPassword = rsaService.decryptData(customer.getPassword());
 
-        if(!encryptedPassword.equals(loginCustomerDto.password())) throw new UnauthorizedException("Email or password incorrect");
+        if(!decryptedPassword.equals(loginCustomerDto.password())) throw new UnauthorizedException("Email or password incorrect");
 
         return jwtUtils.generateToken(customer);
     }
@@ -78,7 +81,7 @@ public class CustomerService {
     public List<ViewCustomerDto> getAllCustomers() {
         List<Customer> customers = customerRepository.findAll();
 
-        return customers.stream().map(CustomerMapper.INSTANCE::customerToViewCustomerDto).toList();
+        return customers.stream().map(customerMapper::customerToViewCustomerDto).toList();
     }
 
     public String updateCustomer(Customer customerUpdate){
@@ -98,7 +101,7 @@ public class CustomerService {
 
         customerRepository.deleteById(id);
 
-        return CustomerMapper.INSTANCE.customerToViewCustomerDto(customer);
+        return customerMapper.customerToViewCustomerDto(customer);
     }
 
     public ZipCode zipCode(String country, String zipCode){

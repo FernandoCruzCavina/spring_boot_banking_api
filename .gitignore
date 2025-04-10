@@ -4,6 +4,14 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+*.key
+*.properties
+
 ### STS ###
 .apt_generated
 .classpath
@@ -12,14 +20,6 @@ target/
 .settings
 .springBeans
 .sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-*.key
-*.properties
 
 ### NetBeans ###
 /nbproject/private/

@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.bankup.entity.Customer;
+import org.example.bankup.exception.EntityNotFoundException;
 import org.example.bankup.repository.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -28,11 +29,13 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = recoverToken(request);
 
-        System.out.println("aqui filter chain");
         if (token != null) {
             String email = jwtUtils.verifyToken(token);
-            Optional<Customer> customer = customerRepository.findFirstByMail(email);
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(customer, null, customer.get().getAuthorities() );
+
+            Customer customer = customerRepository.findFirstByMail(email)
+                    .orElseThrow(EntityNotFoundException::customerNotFound);
+
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(customer, null, customer.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
         filterChain.doFilter(request, response);

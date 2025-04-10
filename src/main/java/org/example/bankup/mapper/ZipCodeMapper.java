@@ -11,9 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface ZipCodeMapper {
-    ZipCodeMapper INSTANCE = Mappers.getMapper(ZipCodeMapper.class);
 
     @Mapping(target = "city", source = "places", qualifiedByName = "getFirstPlace")
     @Mapping(target = "state", source = "places", qualifiedByName = "getFirstPlace")

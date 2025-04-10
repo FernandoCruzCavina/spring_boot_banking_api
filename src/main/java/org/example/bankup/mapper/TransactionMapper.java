@@ -5,9 +5,8 @@ import org.example.bankup.entity.Transaction;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface TransactionMapper {
-    TransactionMapper INSTANCE = Mappers.getMapper(TransactionMapper.class);
 
     ViewTransactionDto transactionToViewTransactionDto(Transaction transaction);
 }

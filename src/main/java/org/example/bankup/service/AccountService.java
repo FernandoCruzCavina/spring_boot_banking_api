@@ -25,14 +25,16 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
+    private final AccountMapper accountMapper;
 
     @Autowired
-    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository) {
+    public AccountService(AccountRepository accountRepository, CustomerRepository customerRepository, AccountMapper accountMapper) {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
+        this.accountMapper = accountMapper;
     }
 
-    @CachePut(value = "accounts")
+    @CachePut(value = "accounts", key = "#accountDto.customerId()")
     public void createAccount(CreateAccountDto accountDto) {
 
         Customer customer = customerRepository.findFirstByCustomerId(accountDto.customerId())
@@ -49,15 +51,15 @@ public class AccountService {
         accountRepository.save(account);
     }
 
-    @Cacheable(value = "accounts")
+    @Cacheable(value = "accounts", key = "#customerId")
     public ViewAccountDto getAccountByCustomerId(long customerId) {
         Account account = accountRepository.findFirstByCustomer_CustomerId(customerId)
                 .orElseThrow(EntityNotFoundException::accountNotFound);
 
-        return AccountMapper.INSTANCE.accountToViewAccountDto(account);
+        return accountMapper.accountToViewAccountDto(account);
     }
 
-    @CacheEvict(value = "acccounts", allEntries = true)
+    @CacheEvict(value = "accounts", allEntries = true)
     public String deleteAccountByCustomerId(long customer_id) {
         Customer customer = customerRepository.findFirstByCustomerId(customer_id)
                 .orElseThrow(EntityNotFoundException::customerNotFound);

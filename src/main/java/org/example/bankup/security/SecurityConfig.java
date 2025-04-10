@@ -22,16 +22,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity httpSecurity) throws Exception {
-        System.out.println("configure securityConfig");
 
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorization -> authorization
-                        .requestMatchers(HttpMethod.POST, "customers/create").hasRole("ADMINISTRATOR")
-                        .requestMatchers(HttpMethod.DELETE, "customers/delete").hasRole("ADMINISTRATOR")
-                        .requestMatchers(HttpMethod.POST, "accounts/create").hasRole("STANDARD_CUSTOMER")
-                        .requestMatchers(HttpMethod.POST, "customers/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/customers/create").hasRole("ADMINISTRATOR")
+                        .requestMatchers(HttpMethod.DELETE, "/customers/delete").hasRole("ADMINISTRATOR")
+                        .requestMatchers(HttpMethod.POST, "/accounts/create").hasRole("STANDARD_CUSTOMER")
+                        .requestMatchers(HttpMethod.POST, "/customers/login").permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/v3/api-docs",

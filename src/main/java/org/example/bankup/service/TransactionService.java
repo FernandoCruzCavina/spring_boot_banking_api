@@ -26,25 +26,27 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final AccountRepository accountRepository;
+    private final TransactionMapper transactionMapper;
 
     @Autowired
-    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository) {
+    public TransactionService(TransactionRepository transactionRepository, AccountRepository accountRepository, TransactionMapper transactionMapper) {
         this.transactionRepository = transactionRepository;
         this.accountRepository = accountRepository;
+        this.transactionMapper = transactionMapper;
     }
 
-    @Cacheable(value = "transactions")
+    @Cacheable(value = "transactions", key = "#id")
     public ViewTransactionDto getTransactionById(long id){
         Optional<Transaction> transaction = transactionRepository.findById(id);
 
-        return transaction.map(TransactionMapper.INSTANCE::transactionToViewTransactionDto).orElse(null);
+        return transaction.map(transactionMapper::transactionToViewTransactionDto).orElse(null);
     }
 
     public void createSchedulePayment(CreateTransactionDto transactionDto) {
 
     }
 
-    @CachePut(value = "transacations", key = "{result.fromAccount(), result.toAccount()}")
+    @CachePut(value = "transactions", key = "#transactionDto.transactionId()")
     public ViewTransactionDto createPaymentNow(CreateTransactionDto transactionDto) {
 
         Account fromAccount = accountRepository.findFirstByAccountId(
@@ -71,7 +73,7 @@ public class TransactionService {
         payment(transaction);
         transactionRepository.save(transaction);
 
-        return TransactionMapper.INSTANCE.transactionToViewTransactionDto(transaction);
+        return transactionMapper.transactionToViewTransactionDto(transaction);
     }
 
     private void payment(Transaction transaction)  {
