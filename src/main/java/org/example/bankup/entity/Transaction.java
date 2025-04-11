@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.example.bankup.constants.TransactionStatus;
 import org.example.bankup.constants.TransactionType;
 
@@ -41,6 +42,7 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionType transactionType;
 
+    @Setter
     @Column(nullable = false, name = "status")
     @Enumerated(EnumType.STRING)
     private TransactionStatus status;
@@ -55,4 +57,5 @@ public class Transaction {
         this.transactionType = transactionType;
         this.status = status;
     }
+
 }

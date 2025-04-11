@@ -78,10 +78,10 @@ public class CustomerController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createCustomerDto(@RequestBody CreateCustomerDto createCustomerDto) {
-        Customer customer = customerService.createCustomer(createCustomerDto);
+    public ResponseEntity<ViewCustomerDto> createCustomerDto(@RequestBody CreateCustomerDto createCustomerDto) {
+        ViewCustomerDto customer = customerService.createCustomer(createCustomerDto);
 
-        return ResponseEntity.ok("Customer created!\n"+ customer);
+        return ResponseEntity.ok(customer);
 
     }
 

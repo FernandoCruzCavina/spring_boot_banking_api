@@ -3,6 +3,7 @@ package org.example.bankup.service;
 import org.example.bankup.constants.AccountStatus;
 import org.example.bankup.constants.TransactionStatus;
 import org.example.bankup.constants.TransactionType;
+import org.example.bankup.dto.transaction.CreateScheduledTranscationDto;
 import org.example.bankup.dto.transaction.CreateTransactionDto;
 import org.example.bankup.dto.transaction.ViewTransactionDto;
 import org.example.bankup.entity.Account;
@@ -37,16 +38,41 @@ public class TransactionService {
 
     @Cacheable(value = "transactions", key = "#id")
     public ViewTransactionDto getTransactionById(long id){
-        Optional<Transaction> transaction = transactionRepository.findById(id);
+        Transaction transaction = transactionRepository.findById(id).orElseThrow(EntityNotFoundException::accountNotFound);
 
-        return transaction.map(transactionMapper::transactionToViewTransactionDto).orElse(null);
+        return transactionMapper.transactionToViewTransactionDto(transaction);
     }
 
-    public void createSchedulePayment(CreateTransactionDto transactionDto) {
+    public ViewTransactionDto createSchedulePayment(CreateScheduledTranscationDto transactionDto) {
 
+        Account fromAccount = accountRepository.findFirstByAccountId(
+                transactionDto.fromAccount().getAccountId()
+        ).orElseThrow(EntityNotFoundException::accountNotFound);
+
+        Account toAccount = accountRepository.findFirstByAccountId(
+                transactionDto.toAccount().getAccountId()
+        ).orElseThrow(EntityNotFoundException::accountNotFound);
+
+        verifyBalance(fromAccount, transactionDto.amount());
+        verifyStatus(fromAccount, toAccount);
+        verifyDate(transactionDto.createdTransactionDate());
+
+        Transaction transaction = new Transaction(
+                fromAccount,
+                toAccount,
+                transactionDto.amount(),
+                transactionDto.createdTransactionDate(),
+                transactionDto.completedTransactionDate(),
+                transactionDto.transactionType(),
+                TransactionStatus.PENDING
+        );
+
+        transactionRepository.save(transaction);
+
+        return transactionMapper.transactionToViewTransactionDto(transaction);
     }
 
-    @CachePut(value = "transactions", key = "#transactionDto.transactionId()")
+    @CachePut(value = "transactions", key = "#result.id()")
     public ViewTransactionDto createPaymentNow(CreateTransactionDto transactionDto) {
 
         Account fromAccount = accountRepository.findFirstByAccountId(
@@ -64,9 +90,9 @@ public class TransactionService {
                 fromAccount,
                 toAccount,
                 transactionDto.amount(),
+                transactionDto.createdTransactionDate(),
                 Timestamp.from(Instant.now()),
-                Timestamp.from(Instant.now()),
-                TransactionType.WITHDRAW,
+                transactionDto.transactionType(),
                 TransactionStatus.COMPLETED
         );
 
@@ -106,6 +132,12 @@ public class TransactionService {
 
         if (!toAccount.getStatus().equals(AccountStatus.ACTIVE)) {
             throw BusinessException.statusInactive();
+        }
+    }
+
+    private void verifyDate(Timestamp transactionDate) {
+        if(transactionDate.getTime() > Instant.now().getEpochSecond()){
+            throw BusinessException.InvalidDate();
         }
     }
 

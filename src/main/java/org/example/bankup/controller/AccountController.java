@@ -53,10 +53,9 @@ public class AccountController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createAccount(@RequestBody CreateAccountDto accountDto){
-
-        accountService.createAccount(accountDto);
-        return ResponseEntity.ok("Account created");
+    public ResponseEntity<ViewAccountDto> createAccount(@RequestBody CreateAccountDto accountDto){
+        ViewAccountDto viewAccountDto = accountService.createAccount(accountDto);
+        return ResponseEntity.ok(viewAccountDto);
     }
 
     @DeleteMapping("/delete/{id}")

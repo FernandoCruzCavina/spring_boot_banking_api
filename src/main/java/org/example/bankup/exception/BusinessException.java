@@ -21,4 +21,8 @@ public class BusinessException extends RuntimeException{
     public static BusinessException statusInactive() {
         return new BusinessException("status inactive");
     }
+
+    public static BusinessException InvalidDate() {
+        return new BusinessException("Invalid date");
+    }
 }

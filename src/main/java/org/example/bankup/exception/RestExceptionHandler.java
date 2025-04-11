@@ -20,7 +20,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorMessageException> handleUnauthorized(UnauthorizedException ex) {
 
-        ErrorMessageException responseException = new ErrorMessageException(HttpStatus.NOT_FOUND, ex.getMessage());
+        ErrorMessageException responseException = new ErrorMessageException(HttpStatus.UNAUTHORIZED, ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseException);
     }
@@ -28,7 +28,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorMessageException> handleBusinessError(BusinessException ex) {
 
-        ErrorMessageException responseException = new ErrorMessageException(HttpStatus.NOT_FOUND, ex.getMessage());
+        ErrorMessageException responseException = new ErrorMessageException(HttpStatus.BAD_REQUEST, ex.getMessage());
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseException);
     }

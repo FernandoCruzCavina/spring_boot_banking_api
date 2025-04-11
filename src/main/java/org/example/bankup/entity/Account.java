@@ -12,7 +12,6 @@ import java.sql.Timestamp;
 
 
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -27,6 +26,7 @@ public class Account {
     @JoinColumn(name = "customer_id", nullable = false, unique = true)
     private Customer customer;
 
+    @Setter
     @Column(nullable = false, name = "balance")
     private double balance;
 

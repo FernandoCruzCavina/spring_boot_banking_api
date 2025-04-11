@@ -1,6 +1,7 @@
 package org.example.bankup.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.example.bankup.dto.transaction.CreateScheduledTranscationDto;
 import org.example.bankup.dto.transaction.CreateTransactionDto;
 import org.example.bankup.dto.transaction.ViewTransactionDto;
 import org.example.bankup.entity.Transaction;
@@ -25,10 +26,6 @@ public class TransactionController {
     public ResponseEntity<ViewTransactionDto> getTransactionById(@RequestParam int id) {
         ViewTransactionDto transaction = transactionService.getTransactionById(id);
 
-        if (transaction == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(transaction);
     }
 
@@ -36,10 +33,13 @@ public class TransactionController {
     public ResponseEntity<ViewTransactionDto> createTransaction(@RequestBody CreateTransactionDto createTransactionDto) {
         ViewTransactionDto transaction = transactionService.createPaymentNow(createTransactionDto);
 
-        if (transaction == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(transaction);
+    }
+
+    @PostMapping("/create/schendule")
+    public ResponseEntity<ViewTransactionDto> createTransactionSchendule(@RequestBody CreateScheduledTranscationDto createTransactionDto) {
+        ViewTransactionDto transactionDto = transactionService.createSchedulePayment(createTransactionDto);
+
+        return ResponseEntity.ok(transactionDto);
     }
 }

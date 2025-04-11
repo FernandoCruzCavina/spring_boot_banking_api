@@ -47,7 +47,7 @@ public class CustomerService {
     }
 
     @CachePut(value = "customers", key = "#result.customerId()")
-    public Customer createCustomer(CreateCustomerDto createCustomerDto) {
+    public ViewCustomerDto createCustomer(CreateCustomerDto createCustomerDto) {
         String encryptedPassword = rsaService.encryptData(createCustomerDto.password());
 
         Customer customer = customerMapper.createCustomerDtoToCustomer(createCustomerDto);
@@ -55,7 +55,7 @@ public class CustomerService {
 
         customerRepository.save(customer);
 
-        return customer;
+        return customerMapper.customerToViewCustomerDto(customer);
     }
 
     @Cacheable(value = "customers", key = "#id")

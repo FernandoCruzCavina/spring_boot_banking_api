@@ -7,6 +7,7 @@ import org.example.bankup.entity.Account;
 import java.sql.Timestamp;
 
 public record ViewTransactionDto(
+        long id,
         Account fromAccount,
         Account toAccount,
         double amount,

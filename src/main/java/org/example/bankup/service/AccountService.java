@@ -35,7 +35,7 @@ public class AccountService {
     }
 
     @CachePut(value = "accounts", key = "#accountDto.customerId()")
-    public void createAccount(CreateAccountDto accountDto) {
+    public ViewAccountDto createAccount(CreateAccountDto accountDto) {
 
         Customer customer = customerRepository.findFirstByCustomerId(accountDto.customerId())
                 .orElseThrow(EntityNotFoundException::customerNotFound);
@@ -49,6 +49,8 @@ public class AccountService {
         );
 
         accountRepository.save(account);
+
+        return accountMapper.accountToViewAccountDto(account);
     }
 
     @Cacheable(value = "accounts", key = "#customerId")

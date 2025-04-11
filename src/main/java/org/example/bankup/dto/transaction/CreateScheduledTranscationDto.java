@@ -6,11 +6,12 @@ import org.example.bankup.entity.Account;
 
 import java.sql.Timestamp;
 
-public record CreateTransactionDto(
+public record CreateScheduledTranscationDto (
         Account fromAccount,
         Account toAccount,
         double amount,
         Timestamp createdTransactionDate,
-        TransactionType transactionType,
-        TransactionStatus transactionStatus
-){}
+        Timestamp completedTransactionDate,
+        TransactionType transactionType
+){
+}

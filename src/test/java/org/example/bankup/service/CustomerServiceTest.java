@@ -2,6 +2,7 @@ package org.example.bankup.service;
 
 import org.example.bankup.constants.CustomerRole;
 import org.example.bankup.dto.customer.CreateCustomerDto;
+import org.example.bankup.dto.customer.ViewCustomerDto;
 import org.example.bankup.entity.Customer;
 import org.example.bankup.repository.CustomerRepository;
 import org.example.bankup.security.JwtUtils;
@@ -60,11 +61,11 @@ class CustomerServiceTest {
         when(customerRepository.save(any(Customer.class))).thenReturn(customer);
         when(rsaService.encryptData(anyString())).thenReturn(anyString());
 
-        Customer createdCustomer = customerService.createCustomer(customerDto);
+        ViewCustomerDto createdCustomer = customerService.createCustomer(customerDto);
 
         assertNotNull(createdCustomer);
-        assertEquals(customer.getName(), createdCustomer.getName());
-        assertEquals(customer.getMail(), createdCustomer.getMail());
+        assertEquals(customer.getName(), createdCustomer.name());
+        assertEquals(customer.getMail(), createdCustomer.mail());
 
         verify(customerRepository).save(any(Customer.class));
         verify(rsaService).encryptData(anyString());
