@@ -28,6 +28,7 @@ Swagger for documentation, JWT for security, JPA for data persistence, and Postg
 - ![Jwt](https://img.shields.io/badge/Jwt-4.4.0-orange)
 - ![Swagger](https://img.shields.io/badge/Swagger-2.8.6-brightgreen)
 - ![Maven](https://img.shields.io/badge/Maven-3.9.9-red)
+- ![Docker](https://img.shields.io/badge/Docker-28.0.1-blue)
 - ![Spring Security](https://img.shields.io/badge/Spring_Security-3.4.4-brighgreen)
 - ![Java](https://img.shields.io/badge/Java-17-blue)
 - ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-brightgreen)
@@ -42,6 +43,7 @@ Swagger for documentation, JWT for security, JPA for data persistence, and Postg
 - **Java 17** or higher
 - **PostgreSQL** database
 - **Maven** installed
+- **Docker** installed
 
 ### 3.2 ***installation***
 
@@ -78,7 +80,13 @@ public class RsaService{
 }
 ```
 
-3.2.3 **Run the application**:
+3.2.3 **Run the ``docker-compose.yml``**
+
+```shell
+docker compose up -d
+```
+
+3.2.4 **Run the application**:
 ```shell
 ./mvnw spring-boot:run
 ```
@@ -88,7 +96,7 @@ public class RsaService{
 ### 📬 4. **API Endpoints**
 
 #### Some Endpoints
-```markdown 
+
 | Method | Endpoint             | Description         |
 |--------|----------------------|---------------------|
 | GET    | /customers/{id}      | Get customer by id  |
@@ -96,7 +104,7 @@ public class RsaService{
 | POST   | /accounts/create     | Create new account  |
 | POST   | /transactions/create | Transfer money      |
 | GET    | /loans/{id}          | Get loan by id      |
-```
+
 
 I also prepared endpoints with JSON responses for you in Postman and Swagger-UI
 
