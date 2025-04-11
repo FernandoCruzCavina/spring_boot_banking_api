@@ -80,13 +80,13 @@ public class RsaService{
 }
 ```
 
-3.2.3 **Run the ``docker-compose.yml``**
+3.2.4 **Run the ``docker-compose.yml``**
 
 ```shell
 docker compose up -d
 ```
 
-3.2.4 **Run the application**:
+3.2.5 **Run the application**:
 ```shell
 ./mvnw spring-boot:run
 ```
@@ -97,13 +97,13 @@ docker compose up -d
 
 #### Some Endpoints
 
-| Method | Endpoint             | Description         |
-|--------|----------------------|---------------------|
-| GET    | /customers/{id}      | Get customer by id  |
-| POST   | /customers/create    | Create new customer |
-| POST   | /accounts/create     | Create new account  |
-| POST   | /transactions/create | Transfer money      |
-| GET    | /loans/{id}          | Get loan by id      |
+| **Method** | **Endpoint**         | **Description**     |
+|:----------:|:---------------------|:--------------------|
+|    GET     | /customers/{id}      | Get customer by id  |
+|    POST    | /customers/create    | Create new customer |
+|    POST    | /accounts/create     | Create new account  |
+|    POST    | /transactions/create | Transfer money      |
+|    GET     | /loans/{id}          | Get loan by id      |
 
 
 I also prepared endpoints with JSON responses for you in Postman and Swagger-UI
