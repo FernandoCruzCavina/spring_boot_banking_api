@@ -63,6 +63,12 @@ cd spring_boot_banking_api
 spring.datasource.url=jdbc:postgresql://localhost:5432/banking
 spring.datasource.username=your_username
 spring.datasource.password=your_password
+
+jwt.security.secret=your_secret_code
+
+spring.cache.type=redis
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
 ```
 
 3.2.3 **Configure the security keys**
