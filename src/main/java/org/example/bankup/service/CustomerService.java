@@ -7,6 +7,7 @@ import org.example.bankup.dto.customer.ViewCustomerDto;
 import org.example.bankup.dto.zip_code.ResponseZipCodeDto;
 import org.example.bankup.entity.Customer;
 import org.example.bankup.entity.ZipCode;
+import org.example.bankup.exception.EntityAlreadyExistException;
 import org.example.bankup.exception.EntityNotFoundException;
 import org.example.bankup.exception.UnauthorizedException;
 import org.example.bankup.mapper.CustomerMapper;
@@ -20,6 +21,8 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 
@@ -27,17 +30,11 @@ import java.util.List;
 public class CustomerService {
 
     private final RsaService rsaService;
-
     private final CustomerRepository customerRepository;
-
     private final JwtUtils jwtUtils;
-
     private final ZipCodeService zipCodeService;
-
     private final ZipCodeRepository zipCodeRepository;
-
     private final CustomerMapper customerMapper;
-
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -51,8 +48,12 @@ public class CustomerService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     @CachePut(value = "customers", key = "#result.id()")
     public ViewCustomerDto createCustomer(CreateCustomerDto createCustomerDto) {
+        customerRepository.findFirstByEmail(createCustomerDto.email())
+                .ifPresent(EntityAlreadyExistException::customerFounded);
+
         String hashedPassword = passwordEncoder.encode(createCustomerDto.password());
 
         Customer customer = customerMapper.createCustomerDtoToCustomer(createCustomerDto);
@@ -78,7 +79,7 @@ public class CustomerService {
 
         boolean isCorrectPassword = passwordEncoder.matches(loginCustomerDto.password(), customer.getPassword());
 
-        if(!isCorrectPassword) throw new UnauthorizedException("Email or password incorrect");
+        if (!isCorrectPassword) throw new UnauthorizedException("Email or password incorrect");
 
         return jwtUtils.generateToken(customer);
     }
@@ -89,7 +90,7 @@ public class CustomerService {
         return customers.stream().map(customerMapper::customerToViewCustomerDto).toList();
     }
 
-    public ViewCustomerDto updateCustomer(UpdateCustomerDto updateCustomerDto){
+    public ViewCustomerDto updateCustomer(UpdateCustomerDto updateCustomerDto) {
         Customer customer = customerRepository.findFirstByEmail(
                 updateCustomerDto.email()
         ).orElseThrow(EntityNotFoundException::customerNotFound);
@@ -117,7 +118,7 @@ public class CustomerService {
         return customerMapper.customerToViewCustomerDto(customer);
     }
 
-    public ZipCode zipCode(String country, String zipCode){
+    public ZipCode zipCode(String country, String zipCode) {
         ResponseZipCodeDto resZipCode = zipCodeService.searchZipCodeByCodes(country, zipCode);
 
         ZipCode zip = new ZipCode(

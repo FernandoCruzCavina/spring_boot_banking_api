@@ -24,17 +24,14 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 
 @WebMvcTest(CustomerController.class)
@@ -108,14 +105,14 @@ class CustomerControllerTest {
     }
 
     @Test
-    void shouldTakeMyCustomerByEmail() throws Exception{
+    void shouldTakeMyCustomerByEmail() throws Exception {
 
         when(customerRepository.findFirstById(anyLong())).thenReturn(Optional.of(customer));
 
         when(customerService.getCustomerById(anyLong())).thenReturn(viewCustomerDto);
-        
+
         mockMvc.perform(get("/customers/1")
-                ).andDo(print()).andExpect(status().isOk());
+        ).andDo(print()).andExpect(status().isOk());
 
     }
 
@@ -126,16 +123,19 @@ class CustomerControllerTest {
         public CustomerService customerService() {
             return Mockito.mock(CustomerService.class);
         }
+
         @Bean
-        public JwtUtils jwtUtils(){
+        public JwtUtils jwtUtils() {
             return Mockito.mock(JwtUtils.class);
         }
+
         @Bean
-        public CustomerRepository customerRepository(){
+        public CustomerRepository customerRepository() {
             return Mockito.mock(CustomerRepository.class);
         }
+
         @Bean
-        public RsaService rsaService(){
+        public RsaService rsaService() {
             return Mockito.mock(RsaService.class);
         }
     }

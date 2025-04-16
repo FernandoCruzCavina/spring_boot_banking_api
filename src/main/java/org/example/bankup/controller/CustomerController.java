@@ -11,7 +11,6 @@ import org.example.bankup.dto.customer.CreateCustomerDto;
 import org.example.bankup.dto.customer.LoginCustomerDto;
 import org.example.bankup.dto.customer.UpdateCustomerDto;
 import org.example.bankup.dto.customer.ViewCustomerDto;
-import org.example.bankup.entity.Customer;
 import org.example.bankup.entity.ZipCode;
 import org.example.bankup.service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
