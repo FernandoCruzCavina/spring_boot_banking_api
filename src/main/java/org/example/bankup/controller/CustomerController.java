@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.example.bankup.dto.customer.CreateCustomerDto;
 import org.example.bankup.dto.customer.LoginCustomerDto;
+import org.example.bankup.dto.customer.UpdateCustomerDto;
 import org.example.bankup.dto.customer.ViewCustomerDto;
 import org.example.bankup.entity.Customer;
 import org.example.bankup.entity.ZipCode;
@@ -50,7 +51,7 @@ public class CustomerController {
                             schema = @Schema(implementation = LoginCustomerDto.class),
                             examples = @ExampleObject(
                                     name = "admin",
-                                    value = "{\"mail\": \"fe@m.com\"," +
+                                    value = "{\"email\": \"fe@m.com\"," +
                                             "\"password\": \"Fe\"}",
                                     description = "all access"
                             )
@@ -71,9 +72,7 @@ public class CustomerController {
     @PostMapping("/login")
     public ResponseEntity<String> loginCustomer(@RequestBody LoginCustomerDto loginCustomerDto) {
         String token = customerService.loginCustomer(loginCustomerDto);
-        if (token == null) {
-            return ResponseEntity.notFound().build();
-        }
+
         return ResponseEntity.ok(token);
     }
 
@@ -92,8 +91,10 @@ public class CustomerController {
     }
 
     @PutMapping("/update")
-    public String updateCustomer(@RequestBody Customer customer) {
-        return customerService.updateCustomer(customer);
+    public ResponseEntity<ViewCustomerDto> updateCustomer(@RequestBody UpdateCustomerDto updateCustomerDto) {
+        ViewCustomerDto customer = customerService.updateCustomer(updateCustomerDto);
+
+        return ResponseEntity.ok(customer);
     }
 
     @DeleteMapping("/{id}")

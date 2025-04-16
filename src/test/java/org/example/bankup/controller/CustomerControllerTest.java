@@ -9,27 +9,20 @@ import org.example.bankup.entity.Customer;
 import org.example.bankup.repository.CustomerRepository;
 import org.example.bankup.security.JwtUtils;
 import org.example.bankup.security.RsaService;
-import org.example.bankup.security.SecurityConfig;
 import org.example.bankup.service.CustomerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
 
 import java.util.Optional;
@@ -117,7 +110,7 @@ class CustomerControllerTest {
     @Test
     void shouldTakeMyCustomerByEmail() throws Exception{
 
-        when(customerRepository.findFirstByCustomerId(anyLong())).thenReturn(Optional.of(customer));
+        when(customerRepository.findFirstById(anyLong())).thenReturn(Optional.of(customer));
 
         when(customerService.getCustomerById(anyLong())).thenReturn(viewCustomerDto);
         

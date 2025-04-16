@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Account")
 public class AccountController {
 
-    private AccountService accountService;
+    private final AccountService accountService;
 
     public AccountController(AccountService accountService) {
         this.accountService = accountService;
@@ -45,10 +45,6 @@ public class AccountController {
     public ResponseEntity<ViewAccountDto> getAccountByCustomerId (@PathVariable long id) {
         ViewAccountDto viewAccountDto = accountService.getAccountByCustomerId(id);
 
-        if (viewAccountDto == null) {
-            return ResponseEntity.notFound().build();
-        }
-
         return ResponseEntity.ok(viewAccountDto);
     }
 
@@ -59,9 +55,9 @@ public class AccountController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteAccount(@PathVariable long customerId){
-        String responseDeleted = accountService.deleteAccountByCustomerId(customerId);
+    public ResponseEntity<ViewAccountDto> deleteAccount(@PathVariable("id") long customerId){
+        ViewAccountDto viewAccountDto = accountService.deleteAccountByCustomerId(customerId);
 
-        return ResponseEntity.ok(responseDeleted);
+        return ResponseEntity.ok(viewAccountDto);
     }
 }

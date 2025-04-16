@@ -36,14 +36,14 @@ class CustomerRepositoryTest {
 
     @Test
     void testFindByCustomer_Found(){
-        Optional<Customer> customerFounded = customerRepository.findFirstByMail("john@m.com");
+        Optional<Customer> customerFounded = customerRepository.findFirstByEmail("john@m.com");
 
         assertTrue(customerFounded.isPresent());
     }
 
     @Test
     void testFindByCustomer_NotFound(){
-        Optional<Customer> customerNotFounded = customerRepository.findFirstByMail("john@m.com");
+        Optional<Customer> customerNotFounded = customerRepository.findFirstByEmail("john@m.com");
 
         assertTrue(customerNotFounded.isPresent());
     }

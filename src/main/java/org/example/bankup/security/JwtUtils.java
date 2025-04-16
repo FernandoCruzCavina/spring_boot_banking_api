@@ -7,7 +7,6 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import org.example.bankup.entity.Customer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
@@ -27,7 +26,7 @@ public class JwtUtils {
 
             return JWT.create()
                     .withIssuer("token-service")
-                    .withSubject(customer.getMail())
+                    .withSubject(customer.getEmail())
                     .withExpiresAt(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 2))
                     .sign(algorithm);
 

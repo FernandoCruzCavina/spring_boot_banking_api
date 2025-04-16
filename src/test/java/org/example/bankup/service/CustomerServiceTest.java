@@ -65,7 +65,7 @@ class CustomerServiceTest {
 
         assertNotNull(createdCustomer);
         assertEquals(customer.getName(), createdCustomer.name());
-        assertEquals(customer.getMail(), createdCustomer.mail());
+        assertEquals(customer.getEmail(), createdCustomer.email());
 
         verify(customerRepository).save(any(Customer.class));
         verify(rsaService).encryptData(anyString());

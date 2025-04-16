@@ -1,4 +1,6 @@
 package org.example.bankup.dto.customer;
 
-public record LoginCustomerDto( String mail, String password) {
-}
+public record LoginCustomerDto(
+        String email,
+        String password
+) {}

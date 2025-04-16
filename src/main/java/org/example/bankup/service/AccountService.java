@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Optional;
 
 @Service
 public class AccountService {
@@ -37,7 +36,7 @@ public class AccountService {
     @CachePut(value = "accounts", key = "#accountDto.customerId()")
     public ViewAccountDto createAccount(CreateAccountDto accountDto) {
 
-        Customer customer = customerRepository.findFirstByCustomerId(accountDto.customerId())
+        Customer customer = customerRepository.findFirstById(accountDto.customerId())
                 .orElseThrow(EntityNotFoundException::customerNotFound);
 
         Account account = new Account(
@@ -62,15 +61,15 @@ public class AccountService {
     }
 
     @CacheEvict(value = "accounts", allEntries = true)
-    public String deleteAccountByCustomerId(long customer_id) {
-        Customer customer = customerRepository.findFirstByCustomerId(customer_id)
+    public ViewAccountDto deleteAccountByCustomerId(long customer_id) {
+        Customer customer = customerRepository.findFirstById(customer_id)
                 .orElseThrow(EntityNotFoundException::customerNotFound);
 
-        Account account = accountRepository.findFirstByCustomer_CustomerId(customer.getCustomerId())
+        Account account = accountRepository.findFirstByCustomer_CustomerId(customer.getId())
                 .orElseThrow(EntityNotFoundException::accountNotFound);
 
         accountRepository.delete(account);
 
-        return "Account deleted";
+        return accountMapper.accountToViewAccountDto(account);
     }
 }
