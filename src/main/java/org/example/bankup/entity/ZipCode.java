@@ -8,7 +8,7 @@ import lombok.*;
 @Getter
 @Builder
 @Entity
-@Table(schema = "bank", name = "zipcode")
+@Table(name = "zipcode")
 public class ZipCode {
 
     @Id

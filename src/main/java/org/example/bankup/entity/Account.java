@@ -15,7 +15,7 @@ import java.sql.Timestamp;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(schema = "bank", name = "account")
+@Table( name = "account")
 public class Account {
 
     @Id

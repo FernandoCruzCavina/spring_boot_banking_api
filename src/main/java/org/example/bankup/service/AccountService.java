@@ -54,7 +54,7 @@ public class AccountService {
 
     @Cacheable(value = "accounts", key = "#customerId")
     public ViewAccountDto getAccountByCustomerId(long customerId) {
-        Account account = accountRepository.findFirstByCustomer_CustomerId(customerId)
+        Account account = accountRepository.findFirstByCustomer_Id(customerId)
                 .orElseThrow(EntityNotFoundException::accountNotFound);
 
         return accountMapper.accountToViewAccountDto(account);
@@ -65,7 +65,7 @@ public class AccountService {
         Customer customer = customerRepository.findFirstById(customer_id)
                 .orElseThrow(EntityNotFoundException::customerNotFound);
 
-        Account account = accountRepository.findFirstByCustomer_CustomerId(customer.getId())
+        Account account = accountRepository.findFirstByCustomer_Id(customer.getId())
                 .orElseThrow(EntityNotFoundException::accountNotFound);
 
         accountRepository.delete(account);

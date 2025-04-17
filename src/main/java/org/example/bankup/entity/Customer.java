@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(schema = "bank", name = "customer")
+@Table( name = "customer")
 public class Customer implements UserDetails {
 
     @Id
@@ -32,7 +32,7 @@ public class Customer implements UserDetails {
     @Column(nullable = false, name = "email")
     private String email;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false, name = "country")

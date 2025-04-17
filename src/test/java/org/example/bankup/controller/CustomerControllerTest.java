@@ -4,48 +4,32 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.bankup.constants.CustomerRole;
 import org.example.bankup.dto.customer.CreateCustomerDto;
 import org.example.bankup.dto.customer.LoginCustomerDto;
+import org.example.bankup.dto.customer.UpdateCustomerDto;
 import org.example.bankup.dto.customer.ViewCustomerDto;
 import org.example.bankup.entity.Customer;
 import org.example.bankup.repository.CustomerRepository;
 import org.example.bankup.security.JwtUtils;
-import org.example.bankup.security.RsaService;
-import org.example.bankup.service.CustomerService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
-@WebMvcTest(CustomerController.class)
-@ActiveProfiles("Test")
-@Import(CustomerControllerTest.Config.class)
-@AutoConfigureMockMvc(addFilters = false)
+@SpringBootTest
+@ActiveProfiles("test")
+@AutoConfigureMockMvc
 class CustomerControllerTest {
-
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private CustomerService customerService; // Agora injetado via configuração personalizada
 
     @Autowired
     private CustomerRepository customerRepository;
@@ -54,89 +38,117 @@ class CustomerControllerTest {
     private JwtUtils jwtUtils;
 
     @Autowired
-    private RsaService rsaService;
+    private PasswordEncoder passwordEncoder;
 
-    private Customer customer;
-    private CreateCustomerDto createCustomerDto;
-    private LoginCustomerDto loginCustomerDto;
-    private Customer customer2;
-    private ViewCustomerDto viewCustomerDto;
+    private static Customer customer;
+    private static CreateCustomerDto createCustomerDto;
+    private static UpdateCustomerDto updateCustomerDto;
+    private static LoginCustomerDto loginCustomerDto;
+    private static Customer customer2;
+    private static ViewCustomerDto viewCustomerDto;
+    private static String token;
 
     @BeforeEach
-    void setUp() {
-        customer = new Customer("Fe", "fe@m.com", "Fe",
+    void setUpDatabase() {
+        customerRepository.deleteAll();
+
+        customer = new Customer("John", "john@m.com", "John",
                 "anywhere", "anywhere", "anywhere", CustomerRole.ADMINISTRATOR);
-        customer2 = new Customer("d", "d@m.com", "d",
+        customer2 = new Customer("Fe", "fe@m.com", "Fe",
                 "anywhere", "anywhere", "anywhere", CustomerRole.ADMINISTRATOR);
 
-        createCustomerDto = new CreateCustomerDto("d", "d@m.com", "d",
+        createCustomerDto = new CreateCustomerDto("John", "john@m.com", "John",
                 "anywhere", "anywhere", "anywhere", CustomerRole.ADMINISTRATOR);
 
-        viewCustomerDto = new ViewCustomerDto(1, "Fe", "fe@m.com", "Anywhere", "Anywhere", "Anywhere", CustomerRole.ADMINISTRATOR);
+        updateCustomerDto = new UpdateCustomerDto("UpdatedFe", "fe@m.com", "Fe",
+                "anywhere", "anywhere", "anywhere");
 
-        loginCustomerDto = new LoginCustomerDto("fe@m.com", "Fe");
+        viewCustomerDto = new ViewCustomerDto(1, "John", "john@m.com", "anywhere",
+                "anywhere", "anywhere", CustomerRole.ADMINISTRATOR);
 
+        loginCustomerDto = new LoginCustomerDto("John", "john@m.com");
+
+        customer2 = customerRepository.save(customer2);
+        token = jwtUtils.generateToken(customer2);
     }
 
     @Test
-    @WithMockUser("spring")
-    void testShouldReturn200Ok() throws Exception {
+    void shouldLoginAndReturnJwtToken() throws Exception {
+        String hashedPassword = passwordEncoder.encode(customer.getPassword());
+        customer.setPassword(hashedPassword);
 
-        when(customerRepository.save(any(Customer.class))).thenReturn(customer2);
+        customerRepository.save(customer);
 
-        when(jwtUtils.generateToken(any(Customer.class))).thenCallRealMethod();
-        when(jwtUtils.verifyToken(anyString())).thenCallRealMethod();
+        LoginCustomerDto loginDto = new LoginCustomerDto("john@m.com", "John");
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        String requestJson = objectMapper.writeValueAsString(createCustomerDto);
+        String loginDtoJson = new ObjectMapper().writeValueAsString(loginDto);
 
-        String token = jwtUtils.generateToken(customer);
+        mockMvc.perform(post("/customers/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginDtoJson))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.notNullValue()));
+    }
 
-        System.out.println(token);
+    @Test
+    void shouldCreateCustomerAndReturnViewCustomerDto() throws Exception {
 
-        System.out.println(jwtUtils.verifyToken(token));
+        String createCustomerDtoJson = new ObjectMapper().writeValueAsString(createCustomerDto);
 
         mockMvc.perform(post("/customers/create")
-                        .header("Authorization", token)
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestJson))
-                .andDo(print())
-                .andExpect(status().isOk());
+                        .content(createCustomerDtoJson))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("john@m.com"));
     }
 
     @Test
-    void shouldTakeMyCustomerByEmail() throws Exception {
+    void shouldGetCustomerById() throws Exception {
 
-        when(customerRepository.findFirstById(anyLong())).thenReturn(Optional.of(customer));
+        Customer customerTest = customerRepository.save(customer);
 
-        when(customerService.getCustomerById(anyLong())).thenReturn(viewCustomerDto);
-
-        mockMvc.perform(get("/customers/1")
-        ).andDo(print()).andExpect(status().isOk());
-
+        mockMvc.perform(get("/customers/{id}", customerTest.getId())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("john@m.com"));
     }
 
-    // Definição manual dos mocks, substituindo @MockBean
-    @TestConfiguration
-    static class Config {
-        @Bean
-        public CustomerService customerService() {
-            return Mockito.mock(CustomerService.class);
-        }
+    @Test
+    void shouldReturnNotFoundWhenCustomerDoesNotExist() throws Exception {
 
-        @Bean
-        public JwtUtils jwtUtils() {
-            return Mockito.mock(JwtUtils.class);
-        }
+        mockMvc.perform(get("/customers/{id}", 999)
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
+    }
 
-        @Bean
-        public CustomerRepository customerRepository() {
-            return Mockito.mock(CustomerRepository.class);
-        }
+    @Test
+    void shouldGetAllCustomers() throws Exception {
 
-        @Bean
-        public RsaService rsaService() {
-            return Mockito.mock(RsaService.class);
-        }
+        customerRepository.save(customer);
+
+        mockMvc.perform(get("/customers/all")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2));
+    }
+
+    @Test
+    void shouldUpdateCustomer() throws Exception {
+
+        mockMvc.perform(put("/customers/update")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(updateCustomerDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("UpdatedFe"));
+    }
+
+    @Test
+    void shouldDeleteCustomerById() throws Exception {
+
+        mockMvc.perform(delete("/customers/{id}", customer2.getId())
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk());
     }
 }
